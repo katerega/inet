@@ -4,7 +4,7 @@ import pytest
 from epo_ops.middlewares import Dogpile, Throttler
 from epo_ops.middlewares.throttle.storages import sqlite
 from inet.sources.ops import OpsClient
-from secrets import OPS_KEY, OPS_SECRET
+from .secrets import OPS_KEY, OPS_SECRET
 
 
 def test_ops_client_instantiated():
