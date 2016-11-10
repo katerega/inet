@@ -25,6 +25,8 @@ def test_ops_client_instantiated():
                        middlewares=middlewares)
     assert len(client.middlewares) == 2
 
+def test_ops_applicant_search():
+    pass
 
 if __name__ == '__main__':
     pytest.main()
