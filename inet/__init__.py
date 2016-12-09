@@ -1,1 +1,1 @@
-from .inet import Inet
+from inet.inet import Inet
