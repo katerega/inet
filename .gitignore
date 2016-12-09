@@ -76,3 +76,5 @@ target/
 *.sublime-project
 *.sublime-workspace
 
+# exclude vcrpy casettes
+fixtures/
