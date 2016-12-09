@@ -2,10 +2,10 @@
 import pytest
 import vcr
 
-from epo_ops.middlewares import Dogpile, Throttler
-from epo_ops.middlewares.throttle.storages import sqlite
 from inet.sources import ops
 from inet.sources.ops import OpsClient
+from epo_ops.middlewares import Dogpile, Throttler
+from epo_ops.middlewares.throttle.storages import sqlite
 from nose.tools import assert_dict_contains_subset, assert_is_instance, assert_true
 from .secrets import OPS_KEY, OPS_SECRET
 
