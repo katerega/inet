@@ -2,7 +2,6 @@
 import pytest
 import vcr
 
-from inet.sources import ops
 from inet.sources.ops import OpsClient
 from epo_ops.middlewares import Dogpile, Throttler
 from epo_ops.middlewares.throttle.storages import sqlite
@@ -12,7 +11,7 @@ from secrets import OPS_KEY, OPS_SECRET
 
 class TestOps():
     # Class level client to use across tests
-    client = ops.OpsClient(OPS_KEY, OPS_SECRET)
+    client = OpsClient(OPS_KEY, OPS_SECRET)
 
     @vcr.use_cassette('fixtures/vcr_cassettes/synopsis.yaml')
     def test_request_response(self):
