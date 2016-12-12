@@ -4,13 +4,13 @@ import tweepy
 import vcr
 
 from secrets import TWITTER_ACCESS, TWITTER_SECRET
-from secrets import CONSUMER_KEY, CONSUMER_SECRET
+from secrets import TWITTER_CONSUMER_ACCESS, TWITTER_CONSUMER_SECRET
 
 
 class TestTweepyIntegration():
     """Test class to ensure tweepy functionality works as expected"""
     # Class level client to use across tests
-    auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
+    auth = tweepy.OAuthHandler(TWITTER_CONSUMER_ACCESS, TWITTER_CONSUMER_SECRET)
     auth.set_access_token(TWITTER_ACCESS, TWITTER_SECRET)
 
     @vcr.use_cassette('fixtures/vcr_cassettes/twitter.yaml')
