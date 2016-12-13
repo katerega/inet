@@ -7,4 +7,4 @@ from ..constants import TWITTER_CONSUMER_ACCESS, TWITTER_CONSUMER_SECRET
 _auth = tweepy.OAuthHandler(TWITTER_CONSUMER_ACCESS, TWITTER_CONSUMER_SECRET)
 _auth.set_access_token(TWITTER_ACCESS, TWITTER_SECRET)
 
-api = tweepy.API(_auth)
+twiter_api = tweepy.API(_auth)
