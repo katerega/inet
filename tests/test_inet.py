@@ -5,9 +5,20 @@ import csv
 from inet.inet import Inet
 
 
+@pytest.fixture(scope='session')
+def temp_file(tmpdir_factory):
+    headers = ['header1', 'header2']
+    rows = [('AA', 'BB'), ('CC', 'DD')]
+    temporary_file = tmpdir_factory.mktemp('data').join('temp.csv')
+    with open(str(temporary_file), 'w') as f:
+        f_csv = csv.writer(f)
+        f_csv.writerow(headers)
+        f_csv.writerows(rows)
+    return temporary_file
+
+
 class TestInet():
     """Test the Inet class functions as expected"""
-
     def test_no_data_file(self):
         with pytest.raises(AttributeError):
             Inet(data_file=None)
@@ -18,14 +29,7 @@ class TestInet():
             p.write("content")
             Inet(data_file=str(p))
 
-    def test_read_csv(self, tmpdir):
-        headers = ['header1', 'header2']
-        rows = [('AA', 'BB'), ('CC', 'DD')]
-        temp_file = tmpdir.mkdir("sub").join("temp.csv")
-        with open(str(temp_file), 'w') as f:
-            f_csv = csv.writer(f)
-            f_csv.writerow(headers)
-            f_csv.writerows(rows)
+    def test_read_csv(self, temp_file):
         inet = Inet(data_file=str(temp_file))
         rows = inet.rows
         assert len(rows) == 2
@@ -36,6 +40,10 @@ class TestInet():
 
         with pytest.raises(AttributeError):
             assert rows[0].header3 == 'AA'
+
+    def test_inet_sources(self, temp_file):
+        i = Inet(data_file=str(temp_file))
+        assert len(i.sources) == 3
 
 if __name__ == '__main__':
     pytest.main()
