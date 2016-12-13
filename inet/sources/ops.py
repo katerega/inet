@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 import epo_ops
 
+from .constants import OPS_KEY, OPS_SECRET
+from epo_ops.middlewares import Dogpile, Throttler
+
 
 class OpsClient(epo_ops.RegisteredClient):
     """Wraps the epo_ops Client and RegisteredClient classes"""
@@ -36,3 +39,12 @@ class OpsClient(epo_ops.RegisteredClient):
                                           range_begin,
                                           range_end,
                                           constituents)
+
+_middlewares = [
+    Dogpile(),
+    Throttler(),
+]
+
+ops_client = OpsClient(OPS_KEY,
+                       OPS_SECRET,
+                       middlewares=_middlewares)
