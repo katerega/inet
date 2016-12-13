@@ -41,9 +41,5 @@ class TestInet():
         with pytest.raises(AttributeError):
             assert rows[0].header3 == 'AA'
 
-    def test_inet_sources(self, temp_file):
-        i = Inet(data_file=str(temp_file))
-        assert len(i.sources) == 3
-
 if __name__ == '__main__':
     pytest.main()

@@ -3,10 +3,12 @@ import csv
 import os
 
 from collections import namedtuple
+from . import sources
 
 
 class Inet():
     """Inet class"""
+
     def __init__(self, data_file=None):
         # Naive check for file type based on extension
         # First check filepath is passed as a parameter
@@ -28,3 +30,10 @@ class Inet():
         else:
             raise AttributeError("No data_file path specified as a "
                                  "parameter to Inet object")
+
+        # Access sources from this class
+        self.twitter_client = sources.twitter_client
+        self.ops_client = sources.ops_client
+        self.ch_client = sources.ch_client
+
+
