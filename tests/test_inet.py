@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import pytest
 import csv
+import vcr
 
 from inet.inet import Inet
 
@@ -40,6 +41,13 @@ class TestInet():
 
         with pytest.raises(AttributeError):
             assert rows[0].header3 == 'AA'
+
+    @vcr.use_cassette('fixtures/vcr_cassettes/scrape_html.yaml')
+    def test_scrape_html(self, temp_file):
+        inet = Inet(data_file=str(temp_file))
+        about_html = inet.scrape_html('http://www.nesta.org.uk')
+        assert len(about_html) == 1
+        assert about_html[0].url == 'http://www.nesta.org.uk/about-us'
 
 if __name__ == '__main__':
     pytest.main()
