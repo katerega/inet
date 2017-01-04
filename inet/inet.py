@@ -26,14 +26,8 @@ class Inet():
             ext = os.path.splitext(data_file)[-1].lower()
             # then check ends with .csv or .json
             if ext == '.csv':
-                self.rows = []
-                with open(data_file) as f:
-                    f_csv = csv.reader(f)
-                    headings = next(f_csv)
-                    Row = namedtuple('Row', headings)
-                    for r in f_csv:
-                        row = Row(*r)
-                        self.rows.append(row)
+                # List of NamedTuples corresponding to rows/headings
+                self.rows = self._read_data_file(data_file)
             else:
                 raise TypeError("Input file must be of type .csv")
         else:
@@ -50,29 +44,15 @@ class Inet():
             url = "http://" + url
         return url
 
-    def match_twitter_to_emails(self):
-        """Use the emails from the data list to identify
-        Twitter accounts"""
-        pass
+    def _read_data_file(self, data_file):
+        self.rows = []
+        with open(data_file) as f:
+            f_csv = csv.reader(f)
+            headings = next(f_csv)
+            Row = namedtuple('Row', headings)
+            return [Row(*r) for r in f_csv]
 
-    def match_companies_to_ch(self):
-        """Use the supplied company names to match to Companies House
-        entries using their API"""
-        pass
-
-    def match_people_to_ch(self):
-        """Match individuals named in the data to Companies House entries"""
-        pass
-
-    def match_companies_to_epo(self):
-        """Match companies named in the data to EPO's database"""
-        pass
-
-    def match_people_to_epo(self):
-        """Match individuals named in the data to EPO's database"""
-        pass
-
-    def scrape_html(self, url, about_xpath=None):
+    def _scrape_html(self, url, about_xpath=None):
         """Use urls in the data to get company html - specifically
         the homepage, and the about page"""
 
