@@ -52,32 +52,42 @@ class Inet():
             Row = namedtuple('Row', headings)
             return [Row(*r) for r in f_csv]
 
-    def _scrape_html(self, url, about_xpath=None):
-        """Use urls in the data to get company html - specifically
-        the homepage, and the about page"""
+    def _get_links_using_xpath(self, tree, xpath):
+        return list(self._check_url_scheme(str(link)) for link in tree.xpath(xpath))
+
+    def scrape_html(self,
+                    url,
+                    about=True,
+                    about_xpath=None,
+                    twitter_handles=True,
+                    twitter_xpath=None):
+        """Scrape the HTML of company websites."""
 
         # Xpath selector for hrefs that contain 'about'
         if about_xpath is None:
+            # translate lowercases all upercase A B O U T chars
             about_xpath = ("//a[text()[contains(translate(., 'ABOUT', 'about')," +
                            "'about')]]/@href")
 
-        # Get the page using requests
+        if twitter_xpath is None:
+            twitter_xpath = ("//a[contains(@href,'twitter.com')]/@href")
+
         page = requests.get(url)
-        # Convert to html from string
         tree = html.fromstring(page.content)
-        # Select the 'about' links
-        about_links = tree.xpath(about_xpath)
-        # Validate the urls and append http if needed
-        about_links = list(self._check_url_scheme(link) for link in about_links)
-        # Create a list of the 'about' request.Response objects
-        about_responses = []
+
+        about_links = self._get_links_using_xpath(tree, about_xpath)
+        twitter_links = self._get_links_using_xpath(tree, twitter_xpath)
+
+        responses = {'about_html': [], 'twitter_links': []}
         for link in about_links:
             # Some links aren't qualified URLs in which case
-            # requests raises an error - we don't want those in the list
+            # Requests raises an error - we don't want those in the list
             try:
                 page = requests.get(link)
-                about_responses.append(page)
+                responses['about_html'].append(page)
             except requests.exceptions.InvalidURL as e:
                 log.debug(e)
-        # return the list of response objects
-        return about_responses
+
+        [responses['twitter_links'].append(link) for link in twitter_links]
+
+        return responses

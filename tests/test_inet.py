@@ -45,15 +45,25 @@ class TestInet():
     @vcr.use_cassette('fixtures/vcr_cassettes/scrape_html.yaml')
     def test_scrape_html(self, temp_file):
         inet = Inet(data_file=str(temp_file))
-        about_html = inet._scrape_html('http://www.nesta.org.uk')
-        assert len(about_html) == 1
-        assert about_html[0].url == 'http://www.nesta.org.uk/about-us'
+        responses = inet.scrape_html('http://www.nesta.org.uk')
+        keys = responses.keys()
+        assert 'about_html' in keys
+        assert 'twitter_links' in keys
+        assert responses['about_html'][0].url == 'http://www.nesta.org.uk/about-us'
+        assert len(responses['about_html']) == 1
+        assert len(responses['twitter_links']) == 2
+        assert responses['twitter_links'][0] == 'http://twitter.com/nesta_uk'
 
-    def test_scrape_html_xpath(self, temp_file):
+    @vcr.use_cassette('fixtures/vcr_cassettes/htnl_scrape_custom_xpath.yaml')
+    def test_custom_about_xpath(self, temp_file):
         inet = Inet(data_file=str(temp_file))
-        about_html = inet._scrape_html('http://www.nesta.org.uk',
-                                       about_xpath="string")
-        assert len(about_html) == 0
+        about_xpath = "//a[contains(@href,'twitter.com')]/@href"
+        responses = inet.scrape_html('http://www.nesta.org.uk',
+                                     about_xpath=about_xpath)
+        assert len(responses['about_html']) == 2
+        assert len(responses['twitter_links']) == 2
+        assert responses['twitter_links'][0] == 'http://twitter.com/nesta_uk'
+        assert responses['about_html'][0].url == 'https://twitter.com/nesta_uk'
 
 if __name__ == '__main__':
     pytest.main()
