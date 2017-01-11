@@ -12,7 +12,6 @@ import csv
 import logging
 import os
 
-from collections import namedtuple
 from . import sources
 
 # Configure logging to do nothing by default. Will begin
@@ -31,7 +30,7 @@ class Inet():
         if os.path.splitext(data_file)[-1].lower() == '.csv':
             # self.rows is a list of NamedTuples
             # corresponding to rows/headings
-            self.rows = self._read_data_file(data_file)
+            self.data = self._read_data_file(data_file)
         else:
             raise TypeError("Input file must be of type .csv")
 
@@ -41,7 +40,7 @@ class Inet():
         self.html_scraper = sources.html_scraper
 
     def _read_data_file(self, data_file):
-        """Read in data_file
+        """Read in data_file.
 
         Opens the file at path 'data_file' and reads in the file.
         Expects a header row.
@@ -56,9 +55,29 @@ class Inet():
         List of NamedTuple objects with names corresponding
         to the headers in 'data_file'.
         """
-        self.rows = []
-        with open(data_file) as f:
-            f_csv = csv.reader(f)
-            headings = next(f_csv)
-            Row = namedtuple('Row', headings)
-            return [Row(*r) for r in f_csv]
+        # Used to create valid identifiers from strings
+        result = {}
+        with open(data_file, 'r') as f:
+            f_csv = csv.DictReader(f)
+            for row in f_csv:
+                result.setdefault(
+                    row['name'],
+                    {k: v for k, v in row.items() if k != 'name'})
+        return result
+
+    def start(self):
+        """Start the iteration process.
+
+        Starts the iteration process that expands the original seed
+        data.
+
+        Parameters
+        ----------
+        iterations: int, default 5
+            Number of iterations to complete
+
+        Returns
+        -------
+        None
+        """
+        pass

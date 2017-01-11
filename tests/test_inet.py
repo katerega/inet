@@ -8,8 +8,8 @@ from inet.inet import Inet
 
 @pytest.fixture(scope='session')
 def temp_file(tmpdir_factory):
-    headers = ['header1', 'header2']
-    rows = [('AA', 'BB'), ('CC', 'DD')]
+    headers = ['name', 'h1']
+    rows = [('a', 'b'), ('c', 'd')]
     temporary_file = tmpdir_factory.mktemp('data').join('temp.csv')
     with open(str(temporary_file), 'w') as f:
         f_csv = csv.writer(f)
@@ -32,15 +32,14 @@ class TestInet():
 
     def test_read_csv(self, temp_file):
         inet = Inet(data_file=str(temp_file))
-        rows = inet.rows
+        rows = inet.data
         assert len(rows) == 2
-        assert rows[0].header1 == 'AA'
-        assert rows[0].header2 == 'BB'
-        assert rows[1].header1 == 'CC'
-        assert rows[1].header2 == 'DD'
+        assert rows['a'] == {'h1': 'b'}
 
-        with pytest.raises(AttributeError):
-            assert rows[0].header3 == 'AA'
+    def test_start(self, temp_file):
+        inet = Inet(data_file=str(temp_file))
+        assert inet.start() is None
+
 
 if __name__ == '__main__':
     pytest.main()
