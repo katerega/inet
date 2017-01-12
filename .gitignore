@@ -78,3 +78,6 @@ target/
 
 # exclude vcrpy casettes
 fixtures/
+
+# exclude pyenv version file
+.python-version
