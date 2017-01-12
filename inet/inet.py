@@ -65,7 +65,7 @@ class Inet():
                     {k: v for k, v in row.items() if k != 'name'})
         return result
 
-    def start(self):
+    def start(self, iterations=5):
         """Start the iteration process.
 
         Starts the iteration process that expands the original seed
@@ -80,4 +80,14 @@ class Inet():
         -------
         None
         """
-        pass
+
+        # Create an iteration key
+        # This will record what iteration the data
+        # was added in
+        for entry in self.data:
+            self.data[entry]['iteration'] = 0
+
+        for x in range(iterations):
+            for k, v in self.data.items():
+                url = v['website']
+                self.data[k]['html'], self.data[k]['twitter_handles'] = self.html_scraper.scrape(url)

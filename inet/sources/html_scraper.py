@@ -12,6 +12,7 @@ import logging
 import requests
 
 from lxml import html
+from lxml.etree import XMLSyntaxError
 from urllib.parse import urlparse
 
 log = logging.getLogger(__name__)
@@ -43,7 +44,7 @@ class HtmlScraper():
         """Extract elements from tree using xpath
 
         Extracts elements matching 'xpath' in 'tree'
-        and prepends 'http://' of they aren't present in
+        and prepends 'http://' if they aren't present in
         the extracted element.
 
         Parameters
@@ -59,6 +60,21 @@ class HtmlScraper():
         """
         return list(self.check_url_scheme(str(link)) for
                     link in tree.xpath(xpath))
+
+    def request_url(self, url):
+        """Wraps the requests.get() method in exception handlers"""
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
+            return response
+        except requests.exceptions.ConnectionError as e:
+            log.debug(e)
+        except requests.exceptions.TooManyRedirects as e:
+            log.debug(e)
+        except requests.exceptions.InvalidURL as e:
+            log.debug(e)
+        except requests.exceptions.HTTPError as e:
+            log.debug(e)
 
     def scrape(self, url, about=True, about_xpath=None,
                twitter_handles=True, twitter_xpath=None):
@@ -94,25 +110,29 @@ class HtmlScraper():
         if twitter_xpath is None:
             twitter_xpath = ("//a[contains(@href,'twitter.com')]/@href")
 
-        page = requests.get(url)
-        tree = html.fromstring(page.content)
+        url = self.check_url_scheme(url)
+
+        try:
+            page = self.request_url(url)
+            tree = html.fromstring(page.content)
+        except AttributeError as e:
+            # Invalid url or no data returned
+            log.debug(e)
+            return None
+        except XMLSyntaxError as e:
+            log.debug(e)
+            return None
 
         about_links = self.get_links_using_xpath(tree, about_xpath)
         twitter_links = self.get_links_using_xpath(tree, twitter_xpath)
 
-        responses = {'about_html': [], 'twitter_links': []}
+        responses = []
         for link in about_links:
-            # Some links aren't qualified URLs in which case
-            # Requests raises an error - we don't want those in the list
-            try:
-                page = requests.get(link)
-                responses['about_html'].append(page)
-            except requests.exceptions.InvalidURL as e:
-                log.debug(e)
+            page = self.request_url(link)
+            if page:
+                responses.append(page.content)
 
-        [responses['twitter_links'].append(link) for link in twitter_links]
-
-        return responses
+        return responses, twitter_links
 
 
 html_scraper = HtmlScraper()
