@@ -90,4 +90,35 @@ class Inet():
         for x in range(iterations):
             for k, v in self.data.items():
                 url = v['website']
-                self.data[k]['html'], self.data[k]['twitter_handles'] = self.html_scraper.scrape(url)
+                v['html'], v['twitter_handles'] = self.html_scraper.scrape(url)
+                v['company_data'] = self.ch_client.get_company_data(k, v)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
