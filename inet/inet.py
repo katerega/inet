@@ -65,7 +65,7 @@ class Inet():
                     {k: v for k, v in row.items() if k != 'name'})
         return result
 
-    def start(self, iterations=5):
+    def start(self, iterations=1):
         """Start the iteration process.
 
         Starts the iteration process that expands the original seed
