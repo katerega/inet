@@ -17,12 +17,13 @@ from . import sources
 # Configure logging to do nothing by default. Will begin
 # logging if logging system configured by user"""
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
+logger = logging.getLogger(__name__)
+logger.addHandler(logging.NullHandler())
 
 
 class Inet():
     """Inet class that controls scrape behaviour and persists any data."""
+
     def __init__(self, data_file=None):
         if not data_file:
             raise AttributeError("No path to data_file supplied")
@@ -30,6 +31,7 @@ class Inet():
         if os.path.splitext(data_file)[-1].lower() == '.csv':
             # self.rows is a list of NamedTuples
             # corresponding to rows/headings
+            logger.info("Loading data from {}".format(data_file))
             self.data = self._read_data_file(data_file)
         else:
             raise TypeError("Input file must be of type .csv")
@@ -63,6 +65,7 @@ class Inet():
                 result.setdefault(
                     row['name'],
                     {k: v for k, v in row.items() if k != 'name'})
+        logger.info("Loaded data from {}".format(data_file))
         return result
 
     def start(self, iterations=1):
@@ -80,45 +83,37 @@ class Inet():
         -------
         None
         """
+        logger.info("Starting data crawl. Number of iterations is {}"
+                    .format(iterations))
 
-        # Create an iteration key
-        # This will record what iteration the data
-        # was added in
+        # Track what iteration node was added in
         for entry in self.data:
             self.data[entry]['iteration'] = 0
 
-        for x in range(iterations):
+        for iteration in range(iterations):
+            logger.info("Starting iteration {}".format(iteration))
+
             for k, v in self.data.items():
+
                 url = v['website']
-                v['html'], v['twitter_handles'] = self.html_scraper.scrape(url)
+
+                try:
+                    v['html'] = self.html_scraper.scrape(url)
+                    logger.info("Stored html for {}".format(url))
+                except TypeError:
+                    logger.warn("No html stored for {}".format(url))
+                    v['html'] = None
+
+                try:
+                    for html in v.get('html'):
+                        v['twitter_handles'] = (self
+                                                .html_scraper
+                                                .twitter_handles(html))
+                    logger.info("Found {} twitter handles in {}"
+                                .format(len(v.get('twitter_handles', [])),
+                                        url))
+                except TypeError:
+                    logger.warn("No twitter handles stored for {}".format(url))
+                    v['twitter_handles'] = None
+
                 v['company_data'] = self.ch_client.get_company_data(k, v)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

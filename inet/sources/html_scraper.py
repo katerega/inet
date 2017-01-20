@@ -15,8 +15,8 @@ from lxml import html
 from lxml.etree import XMLSyntaxError
 from urllib.parse import urlparse
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
+logger = logging.getLogger(__name__)
+logger.addHandler(logging.NullHandler())
 
 
 class HtmlScraper():
@@ -64,20 +64,20 @@ class HtmlScraper():
     def request_url(self, url):
         """Wraps the requests.get() method in exception handlers"""
         try:
+            print(url)
             response = requests.get(url)
             response.raise_for_status()
             return response
         except requests.exceptions.ConnectionError as e:
-            log.debug(e)
+            logger.debug(e)
         except requests.exceptions.TooManyRedirects as e:
-            log.debug(e)
+            logger.debug(e)
         except requests.exceptions.InvalidURL as e:
-            log.debug(e)
+            logger.debug(e)
         except requests.exceptions.HTTPError as e:
-            log.debug(e)
+            logger.debug(e)
 
-    def scrape(self, url, about=True, about_xpath=None,
-               twitter_handles=True, twitter_xpath=None):
+    def scrape(self, url, about=True, about_xpath=None):
         """Scrape the HTML of company websites
 
         Search the html returned by the address specified in 'url'. Extracts
@@ -107,9 +107,6 @@ class HtmlScraper():
             about_xpath = ("//a[text()[contains(translate(., 'ABOUT', " +
                            "'about'), 'about')]]/@href")
 
-        if twitter_xpath is None:
-            twitter_xpath = ("//a[contains(@href,'twitter.com')]/@href")
-
         url = self.check_url_scheme(url)
 
         try:
@@ -117,22 +114,34 @@ class HtmlScraper():
             tree = html.fromstring(page.content)
         except AttributeError as e:
             # Invalid url or no data returned
-            log.debug(e)
+            logger.debug(e)
             return None
         except XMLSyntaxError as e:
-            log.debug(e)
+            logger.debug(e)
             return None
 
         about_links = self.get_links_using_xpath(tree, about_xpath)
-        twitter_links = self.get_links_using_xpath(tree, twitter_xpath)
-
         responses = []
         for link in about_links:
-            page = self.request_url(link)
+            try:
+                page = self.request_url(link)
+            except requests.exceptions.InvalidSchema:
+                logger.info("No schema for link {}".format(link))
+                page = None
             if page:
                 responses.append(page.content)
+        logger.info("Found {} about pages in {}".format(len(responses), url))
 
-        return responses, twitter_links
+        return responses
+
+    def twitter_handles(self, html_str, twitter_xpath=None):
+        """Searches html tree for twitter links."""
+        if twitter_xpath is None:
+            twitter_xpath = ("//a[contains(@href,'twitter.com')]/@href")
+
+        tree = html.fromstring(html_str)
+
+        return self.get_links_using_xpath(tree, twitter_xpath)
 
 
 html_scraper = HtmlScraper()
