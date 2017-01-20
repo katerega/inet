@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 """
 Inet
 ----
@@ -22,11 +23,31 @@ logger.addHandler(logging.NullHandler())
 
 
 class Inet():
-    """Inet class that controls scrape behaviour and persists any data."""
+    """Control scrape behaviour and persist data
+
+    Controls the scraping process, alternating between network
+    discovery and scraping behavioural evidence. Initialise
+    the seed list of data by passing the path of the csv
+    file to the "data_file" keyword.
+
+    Parameters
+    ----------
+    data_file: str, default None
+        A valid path to the data file, which should be formatted as csv
+
+    Returns
+    -------
+    Inet object
+
+    Examples
+    --------
+    >>> i = inet.Inet(data_file='path/to/file.csv')
+    """
 
     def __init__(self, data_file=None):
         if not data_file:
             raise AttributeError("No path to data_file supplied")
+
         # Naive check for file type based on extension
         if os.path.splitext(data_file)[-1].lower() == '.csv':
             # self.rows is a list of NamedTuples
@@ -42,7 +63,7 @@ class Inet():
         self.html_scraper = sources.html_scraper
 
     def _read_data_file(self, data_file):
-        """Read in data_file.
+        """Read in a data_file.
 
         Opens the file at path 'data_file' and reads in the file.
         Expects a header row.
@@ -57,15 +78,17 @@ class Inet():
         List of NamedTuple objects with names corresponding
         to the headers in 'data_file'.
         """
-        # Used to create valid identifiers from strings
         result = {}
+
         with open(data_file, 'r') as f:
             f_csv = csv.DictReader(f)
             for row in f_csv:
                 result.setdefault(
                     row['name'],
                     {k: v for k, v in row.items() if k != 'name'})
+
         logger.info("Loaded data from {}".format(data_file))
+
         return result
 
     def start(self, iterations=1):
@@ -94,7 +117,6 @@ class Inet():
             logger.info("Starting iteration {}".format(iteration))
 
             for k, v in self.data.items():
-
                 url = v['website']
 
                 try:
@@ -106,12 +128,11 @@ class Inet():
 
                 try:
                     for html in v.get('html'):
-                        v['twitter_handles'] = (self
-                                                .html_scraper
-                                                .twitter_handles(html))
+                        v['twitter_handles'] = self.html_scraper.twitter_handles(html)  # noqa
+
                     logger.info("Found {} twitter handles in {}"
-                                .format(len(v.get('twitter_handles', [])),
-                                        url))
+                                .format(len(v.get('twitter_handles', [])), url))  # noqa
+
                 except TypeError:
                     logger.warn("No twitter handles stored for {}".format(url))
                     v['twitter_handles'] = None

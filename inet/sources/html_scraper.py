@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 """
 inet.sources.html_scraper
 -------------------------
@@ -20,51 +21,31 @@ logger.addHandler(logging.NullHandler())
 
 
 class HtmlScraper():
-    """Provides html scraping methods"""
+    """Provides html scraping methods for data discovery.
+
+    Returns
+    -------
+    HtmlScraper object
+
+    Examples
+    --------
+    >>> HtmlScraper = inet.sources.html_scraper.HtmlScraper()
+    """
 
     def check_url_scheme(self, url):
-        """Check URL validity.
-
-        Checks that urls have a valid scheme, and if not prepends 'http://'.
-
-        Parameters
-        ----------
-        url: string
-            String representation of a URL
-
-        Returns
-        -------
-        URL string
-        """
+        """Check URL validity."""
         if not urlparse(url).scheme:
             url = "http://" + url
         return url
 
     def get_links_using_xpath(self, tree, xpath):
-        """Extract elements from tree using xpath
-
-        Extracts elements matching 'xpath' in 'tree'
-        and prepends 'http://' if they aren't present in
-        the extracted element.
-
-        Parameters
-        ----------
-        tree: lxml.html.HtmlElement
-            HTML of the website being scraped
-        xpath: string
-            String represetnation of a valid xpath selector
-
-        Returns
-        -------
-        list of strings representing urls
-        """
+        """Extract elements from tree using xpath."""
         return list(self.check_url_scheme(str(link)) for
                     link in tree.xpath(xpath))
 
     def request_url(self, url):
-        """Wraps the requests.get() method in exception handlers"""
+        """Wrap a requests.get() method in exception handlers."""
         try:
-            print(url)
             response = requests.get(url)
             response.raise_for_status()
             return response
@@ -78,7 +59,7 @@ class HtmlScraper():
             logger.debug(e)
 
     def scrape(self, url, about=True, about_xpath=None):
-        """Scrape the HTML of company websites
+        """Scrape the HTML of company websites.
 
         Search the html returned by the address specified in 'url'. Extracts
         HTML from any about pages that are present. Also extracts twitter
@@ -100,17 +81,15 @@ class HtmlScraper():
         'about_html' is a list of html documents from the scrape, and
         'twitter_links' is a list of twitter handle links found in the html.
         """
-
-        # Xpath selector for hrefs that contain 'about'
         if about_xpath is None:
-            # translate lowercases all upercase A B O U T chars
             about_xpath = ("//a[text()[contains(translate(., 'ABOUT', " +
                            "'about'), 'about')]]/@href")
 
         url = self.check_url_scheme(url)
-
+        responses = []
         try:
             page = self.request_url(url)
+            responses.append(page.content)
             tree = html.fromstring(page.content)
         except AttributeError as e:
             # Invalid url or no data returned
@@ -121,26 +100,26 @@ class HtmlScraper():
             return None
 
         about_links = self.get_links_using_xpath(tree, about_xpath)
-        responses = []
         for link in about_links:
+
             try:
                 page = self.request_url(link)
             except requests.exceptions.InvalidSchema:
                 logger.info("No schema for link {}".format(link))
-                page = None
+                page = []
+
             if page:
                 responses.append(page.content)
-        logger.info("Found {} about pages in {}".format(len(responses), url))
 
+        logger.info("Found {} about pages in {}".format(len(responses), url))
         return responses
 
     def twitter_handles(self, html_str, twitter_xpath=None):
-        """Searches html tree for twitter links."""
+        """Search an html tree for twitter links."""
         if twitter_xpath is None:
             twitter_xpath = ("//a[contains(@href,'twitter.com')]/@href")
 
         tree = html.fromstring(html_str)
-
         return self.get_links_using_xpath(tree, twitter_xpath)
 
 
