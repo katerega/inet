@@ -95,29 +95,35 @@ class Inet():
 
     def _scrape_html(self):
         for k, v in self.data.items():
-            url = v['website']
-            try:
-                v['html'] = self.html_scraper.scrape(url)
-                logger.info("Stored html for {}".format(url))
-            except TypeError:
-                logger.warn("No html stored for {}".format(url))
-                v['html'] = None
+            if self.check_iteration(v.get('iteration')):
+                url = v['website']
+                try:
+                    v['html'] = self.html_scraper.scrape(url)
+                    logger.info("Stored html for {}".format(url))
+                except TypeError:
+                    logger.warn("No html stored for {}".format(url))
+                    v['html'] = None
 
     def _scrape_twitter_handles(self):
         for k, v in self.data.items():
-            url = v['website']
-            try:
-                for html in v.get('html'):
-                    v['twitter_handles'] = self.html_scraper.twitter_handles(html)  # noqa
-                logger.info("Found {} twitter handles in {}"
-                            .format(len(v.get('twitter_handles', [])), url))  # noqa
-            except TypeError:
-                logger.warn("No twitter handles stored for {}".format(url))
-                v['twitter_handles'] = None
+            if self.check_iteration(v.get('iteration')):
+                url = v['website']
+                try:
+                    for html in v.get('html'):
+                        v['twitter_handles'] = self.html_scraper.twitter_handles(html)  # noqa
+                    logger.info("Found {} twitter handles in {}"
+                                .format(len(v.get('twitter_handles', [])), url))  # noqa
+                except TypeError:
+                    logger.warn("No twitter handles stored for {}".format(url))
+                    v['twitter_handles'] = None
 
     def _get_company_data(self):
         for k, v in self.data.items():
-            v['company_data'] = self.ch_client.get_company_data(k, v)
+            if self.check_iteration(v.get('iteration')):
+                v['company_data'] = self.ch_client.get_company_data(k, v)
+
+    def check_iteration(self, iteration):
+        return iteration == self._iteration
 
     def start(self, iterations=1):
         """Start the iteration process.
@@ -143,6 +149,7 @@ class Inet():
 
         for iteration in range(iterations):
             logger.info("Starting iteration {}".format(iteration))
+            self._iteration = iteration
             self._scrape_html()
             self._scrape_twitter_handles()
             self._get_company_data()
