@@ -97,7 +97,8 @@ class HtmlScraper():
             return None
         except XMLSyntaxError as e:
             logger.debug(e)
-            return None
+        except:
+            logger.debug()
 
         about_links = self.get_links_using_xpath(tree, about_xpath)
         for link in about_links:

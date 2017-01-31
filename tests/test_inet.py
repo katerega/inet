@@ -61,8 +61,9 @@ class TestInet():
         i = Inet(data_file=str(director_file))
         i.start(iterations=1)
         v = i.data['J Gardiner Consulting']
-        assert v['company_data'] != None
-        assert v['company_data']['company_numbers'] == ['10554177']
+        assert v['company_data'] is not None
+        print(len(v['company_data']))
+        assert v['company_data'][0]['company_number'] == '10554177'
 
 if __name__ == '__main__':
     pytest.main()

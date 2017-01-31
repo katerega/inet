@@ -31,5 +31,25 @@ class CompaniesHouseClient():
                 logger.info("No address item for {}")
         return data
 
+    def get_directors(self, k, v):
+        """Return directors data for a company number."""
+        try:
+            company_number = v.get('company_data')[0].get('company_number')
+        except IndexError as e:
+            logger.warn("No Company data found.", e)
+            return []
+
+        if not company_number:
+            logger.warn("No postal code found for {}".format(k))
+            return []
+        r = self._ch.officers(company_number)
+        items = r.json()['items']
+
+        data = []
+        for item in items:
+            data.append(item)
+        print(data)
+        return data
+
 
 ch_client = CompaniesHouseClient()

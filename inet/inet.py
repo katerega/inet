@@ -13,8 +13,6 @@ import csv
 import logging
 import os
 
-import pprint
-
 from . import sources
 
 # Configure logging to do nothing by default. Will begin
@@ -122,6 +120,11 @@ class Inet():
             if self.check_iteration(v.get('iteration')):
                 v['company_data'] = self.ch_client.get_company_data(k, v)
 
+    def _shared_directors(self):
+        for k, v in self.data.items():
+            if self.check_iteration(v.get('iteration')):
+                self.data[k]['directors'] = self.ch_client.get_directors(k, v)
+
     def check_iteration(self, iteration):
         return iteration == self._iteration
 
@@ -153,3 +156,4 @@ class Inet():
             self._scrape_html()
             self._scrape_twitter_handles()
             self._get_company_data()
+            self._shared_directors()
