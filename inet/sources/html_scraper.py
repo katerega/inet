@@ -121,7 +121,8 @@ class HtmlScraper():
             twitter_xpath = ("//a[contains(@href,'twitter.com')]/@href")
 
         tree = html.fromstring(html_str)
-        return self.get_links_using_xpath(tree, twitter_xpath)
+        urls = self.get_links_using_xpath(tree, twitter_xpath)
+        return [url.split('/')[-1] for url in urls]
 
 
 html_scraper = HtmlScraper()

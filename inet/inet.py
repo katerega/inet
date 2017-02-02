@@ -57,7 +57,7 @@ class Inet():
         else:
             raise TypeError("Input file must be of type .csv")
 
-        self.twitter_client = sources.twitter_client
+        self.twitter_handler = sources.twitter_handler
         self.ops_client = sources.ops_client
         self.ch_client = sources.ch_client
         self.html_scraper = sources.html_scraper
@@ -115,6 +115,27 @@ class Inet():
                     logger.warn("No twitter handles stored for {}".format(url))
                     v['twitter_handles'] = None
 
+    def twitter_followers(self):
+        for k, v in self.data.items():
+            if self.check_iteration(v.get('iteration')):
+                v['twitter_followers'] = self.twitter_handler.followers(v['twitter_handles'])  # noqa
+
+    def twitter_following(self):
+        for k, v in self.data.items():
+            if self.check_iteration(v.get('iteration')):
+                v['twitter_following'] = self.twitter_handler.following(v['twitter_handles'])  # noqa
+
+    def mutual_follows(self):
+        for k, v in self.data.items():
+            v['mutual_follows'] = {}
+            if self.check_iteration(v.get('iteration')):
+                for handle in v['twitter_followers']:
+                    followers = v['twitter_followers'][handle]
+                    following = v['twitter_following'][handle]
+                    mutual_set = set(followers).intersection(following)
+                    mutual_list = list(mutual_set)
+                v['mutual_follows'][handle] = mutual_list
+
     def _get_company_data(self):
         for k, v in self.data.items():
             if self.check_iteration(v.get('iteration')):
@@ -157,3 +178,6 @@ class Inet():
             self._scrape_twitter_handles()
             self._get_company_data()
             self._shared_directors()
+            self.twitter_followers()
+            self.twitter_following()
+            self.mutual_follows()

@@ -48,7 +48,6 @@ class CompaniesHouseClient():
         data = []
         for item in items:
             data.append(item)
-        print(data)
         return data
 
 
